@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flask CRUD with Bootstrap Modal</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+</head>
+
+<body>
+    <!-- Topbar Mulai -->
+    <div class="container-fluid bg-primary px-5 d-none d-lg-block">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <h5 class="text-light mb-0 fas fa-heartbeat fa-2x text-danger logo-hipertensi"> Dashboard Hipertensi
+                </h5>
+            </div>
+            <div class="col-lg-6 text-end">
+                <div class="d-inline-flex align-items-center justify-content-end" style="height: 45px;">
+                    <div class="dropdown">
+                        <a href="#" class="dropdown-toggle text-light" data-bs-toggle="dropdown"><small><i
+                                    class="fa fa-home me-2"></i> My Dashboard</small></a>
+                        <div class="dropdown-menu rounded text-end">
+                            <a href="#" class="dropdown-item"><i class="fas fa-user-alt me-2"></i> My Profile</a>
+                            <a href="#" class="dropdown-item"><i class="fas fa-power-off me-2"></i> Log Out</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Topbar Selesai -->
+
+    <div class="container mt-4">
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div class="alert-container">
+            {% for category, message in messages %}
+            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
+
+        <div class="row">
+            <div class="col-md-12">
+                <h2 class="mb-4">Data Detail</h2>
+                <div style="text-align: right; margin-bottom: 10px;">
+                    <button class="btn btn-success" data-toggle="modal" data-target="#addModal">Add Detail</button>
+                </div>
+                <table class="table table-bordered" style="width:100%">
+                    <thead>
+                        <tr>
+                            <th style="width: 5%; background-color: #f2f2f2; color: #333; text-align: center;">ID</th>
+                            <th style="background-color: #f2f2f2; color: #333; text-align: center;">Grade</th>
+                            <th style="width: 35%; background-color: #f2f2f2; color: #333; text-align: center;">Saran
+                            </th>
+                            <th style="width: 40%; background-color: #f2f2f2; color: #333; text-align: center;">Solusi
+                            </th>
+                            <th style="width: 15%; background-color: #f2f2f2; color: #333; text-align: center;">Action
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for detail in details %}
+                        <tr>
+                            <td>{{ detail[0] }}</td>
+                            <td>{{ detail[1] }}</td>
+                            <td>{{ detail[2] }}</td>
+                            <td>{{ detail[3] }}</td>
+                            <td>
+                                <button class="btn btn-sm btn-primary" data-toggle="modal"
+                                    data-target="#editModal{{ detail[0] }}">Edit</button>
+                                <button class="btn btn-sm btn-danger" data-toggle="modal"
+                                    data-target="#deleteModal{{ detail[0] }}">Delete</button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Confirm Delete -->
+    {% for detail in details %}
+    <div class="modal fade" id="deleteModal{{ detail[0] }}" tabindex="-1" role="dialog"
+        aria-labelledby="deleteModalLabel{{ detail[0] }}" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteModalLabel{{ detail[0] }}">Konfirmasi Hapus</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    Apakah Anda yakin ingin menghapus data ini?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
+                    <form action="{{ url_for('delete_detail', id=detail[0]) }}" method="post" style="display: inline;">
+                        <input type="hidden" name="_method" value="DELETE">
+                        <button type="submit" class="btn btn-danger">Hapus</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+
+    <!-- Modal Add -->
+    <div class="modal fade" id="addModal" tabindex="-1" role="dialog" aria-labelledby="addModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <form action="{{ url_for('add_detail') }}" method="post">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="addModalLabel">Add Detail</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label>Grade</label>
+                            <select class="form-control" name="grade" required>
+                                <option value="">-- silahkan pilih --</option>
+                                {% for grade in grades %}
+                                <option value="{{ grade[0] }}">{{ grade[1] }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Saran</label>
+                            <textarea class="form-control" name="saran" rows="3" required></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Solusi</label>
+                            <textarea class="form-control" name="solusi" rows="3" required></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Add</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Edit -->
+    {% for detail in details %}
+    <div class="modal fade" id="editModal{{ detail[0] }}" tabindex="-1" role="dialog"
+        aria-labelledby="editModalLabel{{ detail[0] }}" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <form action="{{ url_for('edit_detail', id=detail[0]) }}" method="post">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="editModalLabel{{ detail[0] }}">Edit Detail</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label>Grade</label>
+                            <select class="form-control" name="grade" required>
+                                <option value="">-- silahkan pilih --</option>
+                                {% for grade in grades %}
+                                <option value="{{ grade[0] }}" {% if grade[0]==detail[1] %} selected {% endif %}>
+                                    {{ grade[1] }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Saran</label>
+                            <textarea class="form-control" name="saran" rows="3" required>{{ detail[2] }}</textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Solusi</label>
+                            <textarea class="form-control" name="solusi" rows="3" required>{{ detail[3] }}</textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Save changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@1.16.1/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        // Auto-close alerts after 5 seconds
+        $(document).ready(function () {
+            window.setTimeout(function () {
+                $(".alert").fadeTo(500, 0).slideUp(500, function () {
+                    $(this).remove();
+                });
+            }, 5000);
+        });
+    </script>
+</body>
+
+</html>
